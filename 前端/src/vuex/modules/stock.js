@@ -1,10 +1,10 @@
 import moment from 'moment'
-import { UPDATEDATE, UPDATECODE } from './../type'
+import { UPDATEDATE, UPDATECODE, UPDATECITY} from './../type'
 
 export default {
 	state: {
 		codeOrName: '',
-    dateSection: [moment().subtract(1, 'days').format('YYYY-MM-DD'), moment().format('YYYY-MM-DD')]
+   	 	dateSection: [moment().subtract(2, 'days').format('YYYY-MM-DD'), moment().subtract(1,'days').format('YYYY-MM-DD')]
 	},
 	mutations: {
 		[UPDATEDATE](state, action) {
@@ -12,7 +12,11 @@ export default {
 		},
 		[UPDATECODE](state, action){
 			console.log(action.codeOrName )
-      state.codeOrName  = action.codeOrName 
+      		state.codeOrName  = action.codeOrName 
+		},
+		[UPDATECITY](state, action){
+			console.log(action.szOrsh )
+      		state.szOrsh  = action.szOrsh 
 		}
 	},
 	actions: {
@@ -21,6 +25,9 @@ export default {
 		},
 		[UPDATECODE]({ commit }, codeOrName){
       commit(UPDATECODE, { codeOrName })
-		}
+		},
+		[UPDATECITY]({ commit }, szOrsh){
+			commit(UPDATECODE, { szOrsh })
+		},
 	}
 }

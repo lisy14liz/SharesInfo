@@ -12,36 +12,74 @@ var dbConfig = require('./models/db-config');
 var stockSql = require('./models/stock-sql');
 var pool = mysql.createPool(dbConfig.mysql);
 
-watch.createMonitor('/home/ys/data', function(monitor) {
-	monitor.on('created', function(fileFullPath, stat) {
-		var filename = fileFullPath.substring(fileFullPath.lastIndexOf('\\')+1).slice(0, -4)
-		var time = Date.parse(new Date(filename)) + 28800000
+function watchMonitor(path, dirName) {
+	watch.createMonitor(path + dirName, function(monitor) {
+		monitor.on('created', function(fileFullPath, stat) {
+			var cityName = dirName === 'sh' ? 1 : 2
+			var fileName = fileFullPath.substring(fileFullPath.lastIndexOf('\\')+1).slice(0, -4)
+			var time = Date.parse(new Date(fileName)) - 28800000
 
-		fs.readFile(fileFullPath, function(err, data) {
-			var dataArray = []
-			data = data.toString().replace(/,/g, '')
-			dataArray = data.split('\n').map(function(item, index) {
-				item = item.split('\t')
-				item.push(time.toString())
-				return item
+			fs.readFile(fileFullPath, function(err, data) {
+				var dataArray = []
+				data = data.toString().replace(/,/g, '')
+				dataArray = data.split('\n').map(function(item, index) {
+					item = item.split('\t')
+					item.push(time.toString())
+					item.push(cityName)
+					item.push(0);
+					return item
+				})
+				dataArray.pop()
+	
+				pool.getConnection(function(err, connection) {
+					connection.query(stockSql.insert, [dataArray], function(err, result) {
+						err ? console.log(err) : console.log('success')
+						connection.release()
+					});
+				});
+
+				pool.getConnection(function(err, connection) {
+					connection.query(stockSql.update1, function(err, result) {
+						err ? console.log(err) : console.log('success')
+						connection.release()
+					});
+				});
+
+				pool.getConnection(function(err, connection) {
+					connection.query(stockSql.update2, function(err, result) {
+						err ? console.log(err) : console.log('success')
+						connection.release()
+					});
+				});
+
+				pool.getConnection(function(err, connection) {
+					connection.query(stockSql.update3, function(err, result) {
+						err ? console.log(err) : console.log('success')
+						connection.release()
+					});
+				});
+				pool.getConnection(function(err, connection) {
+					connection.query(stockSql.alter1, function(err, result) {
+						err ? console.log(err) : console.log('success')
+						connection.release()
+					});
+				});
+
 			})
-			dataArray.pop()
-
-			pool.getConnection(function(err, connection) {
-		    connection.query(stockSql.insert, [dataArray], function(err, result) {
-		      err ? console.log(err) : console.log('success')
-		      connection.release()
-		    });
-		  });
 		})
-	})
-	monitor.on('changed', function(f, stat) {
-		console.log('changed')
-	})
-	monitor.on('removed', function(f, stat) {
-		console.log('removed')
-	})
-});
+		monitor.on('changed', function(f, stat) {
+			console.log('changed')
+		})
+		monitor.on('removed', function(f, stat) {
+			console.log('removed')
+		})
+	});
+}
+
+watchMonitor('E://', 'sh')
+watchMonitor('E://', 'sz')
+
+
 
 var app = express();
 

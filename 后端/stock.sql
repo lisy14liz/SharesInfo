@@ -5,5 +5,7 @@ CREATE TABLE IF NOT EXISTS stock (
   name TEXT NOT NULL,
   amount TEXT NOT NULL,
   proportion TEXT NOT NULL,
-  dateT TEXT NOT NULL
+  dateT TEXT NOT NULL,
+  city_code INT(12) NOT NULL,
+  update_state INT(1) NOT NULL
 ) DEFAULT CHARACTER SET gbk COLLATE gbk_chinese_ci;

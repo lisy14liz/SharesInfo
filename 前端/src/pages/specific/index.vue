@@ -5,6 +5,9 @@
         <el-button type="primary" size="small">返回</el-button>
       </router-link>
     </div> 
+    <div>
+      <div id="stock"></div>
+    </div>
     <el-table :data="data" v-loading="loading" stripe border>
       <el-table-column sortable prop="code" label="股份代号" />
       <el-table-column prop="name" label="股份名称" />
@@ -25,10 +28,29 @@
 
 <script>
 import api from '../../api'
+import moment from 'moment'
+import HighCharts from 'highcharts'
 
 export default {
   data () {
     return {
+      id: 'stock',
+      initKey: 1,
+      option: {
+        chart: { type: 'line' },
+        title: { text: '持仓量变动情况' },
+        colors: ['#058DC7', '#50B432', '#ED561B', '#DDDF00', '#24CBE5'  ],
+        xAxis: { categories: [] },
+        yAxis: {
+          title: { text: '持股量' }
+        },
+        plotOptions: {
+          column: {
+            colorByPoint:true
+          }
+        },
+        series: [{ name: '', data: [] }]
+      },
       code: 0,
       loading: false,
       data: []
@@ -37,22 +59,37 @@ export default {
   methods: {
     getData () {
       const { code } = this.$route.query
+      let dateArray = [], stockArray = []
       this.code = code
       this.loading = true
       api.getMethod('getSpecific', { code }).then(res => {
         this.data = res.map(item => {
-          item.amount = parseInt(item.amount)
-          item.proportion = parseInt((item.proportion.slice(0, -1) * 100).toFixed(0))
-          item.date = new Date(parseInt(item.dateT))
+          const { dateT, amount, proportion } = item
+          dateArray.push(moment(parseInt(dateT)).format('YYYY-MM-DD'))
+          stockArray.push(parseInt(amount))
+
+          item.amount = parseInt(amount)
+          item.proportion = parseInt((proportion.slice(0, -1) * 100).toFixed(0))
+          item.date = new Date(parseInt(dateT))
           return item
         })
+        this.option.xAxis.categories = dateArray
+        this.option.series[0] = {
+          name: res[0].name, data: stockArray
+        }
+        this.initKey = this.initKey + 1
         this.loading = false
       })
     }
   },
   created () {
     this.getData()
+  },
+  mounted() {
+    HighCharts.chart('stock', this.option)
+  },
+  updated() {
+    HighCharts.chart('stock', this.option)
   }
 }
 </script>
-

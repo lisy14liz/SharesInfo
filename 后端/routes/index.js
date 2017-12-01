@@ -13,13 +13,16 @@ router.get('/', function(req, res, next) {
 
 router.get('/getData', function(req, res, next) {
 	pool.getConnection(function(err, connection) {
-		var codeOrName = req.query.codeOrName
+    var codeOrName = req.query.codeOrName
+    var cityCode = req.query.cityCode
     var condition = '%' + codeOrName + '%'
 		var startTime = req.query.startTime
-		var endTime = req.query.endTime
+    var endTime = req.query.endTime
+    
     var query = codeOrName ? stockSql.queryAllWithCode : stockSql.queryAll
+    var valueArray = codeOrName ? [startTime, endTime, cityCode, condition, condition] : [startTime, endTime, cityCode]
 
-    connection.query(query, [startTime, endTime, condition, condition], function(err, result) {
+    connection.query(query, valueArray, function(err, result) {
       utils.responseJSON(res, result, 'get')
       connection.release()
     })
